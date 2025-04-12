@@ -1,0 +1,3 @@
+[submodule "submodules/ultralytics"]
+	path = submodules/ultralytics
+	url = https://github.com/AlexanderExp/ultralytics
