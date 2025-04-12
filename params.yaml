@@ -1,0 +1,13 @@
+data:
+  train: "sh17-dataset/archive/train_files.txt"
+  val: "sh17-dataset/archive/val_files.txt"
+  config: "sh17-dataset/archive/sh17_kaggle.yaml"
+
+model:
+  name: "YOLOv11"
+  weights: "sh17-dataset/archive/yolo11m.pt"
+
+training:
+  epochs: 10
+  batch_size: 16
+  learning_rate: 0.001
