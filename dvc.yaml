@@ -1,0 +1,10 @@
+stages:
+  train:
+    cmd: python3 train.py --config params.yaml
+    deps:
+      - train.py
+      - params.yaml
+      - sh17-dataset/archive
+      - utils.py
+    outs:
+      - metrics.json
