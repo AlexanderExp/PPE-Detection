@@ -1,11 +1,12 @@
+#!/usr/bin/env python3
 from utils import train_and_validate_models
-import pandas as pd
+import time
 import json
 import yaml
 import argparse
 import os
+# Устанавливаем корректный backend для matplotlib до импорта
 os.environ["MPLBACKEND"] = "agg"
-
 
 
 def load_params(config_path):
@@ -14,48 +15,57 @@ def load_params(config_path):
 
 
 def main(config_path):
-    # Загружаем параметры эксперимента из файла конфигурации
+    # Загружаем параметры из указанного YAML-файла
     params = load_params(config_path)
 
-    # Извлекаем необходимые параметры
     data_config = params["data"]["config"]
-    models_to_train = {
-        params["model"]["name"]: params["model"]["weights"],
-    }
-    epochs = params["training"]["epochs"]
-    project_name = "runs/detect"  # Папка для сохранения результатов
+    models_to_train = {params["model"]["name"]: params["model"]["weights"]}
 
-    # Запуск обучения и валидации моделей
+    # Читаем секцию training и переопределяем параметры,
+    # если они заданы в YAML-файле; иначе берём дефолтные значения.
+    training_cfg = params.get("training", {})
+    epochs = training_cfg.get("epochs", 1)
+    batch = training_cfg.get("batch", 1)
+    imgsz = training_cfg.get("imgsz", 320)
+    mosaic = training_cfg.get("mosaic", 0.0)
+    mixup = training_cfg.get("mixup", 0.0)
+    augment = training_cfg.get("augment", False)
+    fraction = training_cfg.get("fraction", 1.0)
+
+    project_name = "runs/detect"  # Папка для сохранения результатов эксперимента
+
+    print(
+        f"[INFO] Параметры обучения: epochs={epochs}, batch={batch}, imgsz={imgsz}, mosaic={mosaic}, mixup={mixup}, augment={augment}, fraction={fraction}")
+
+    # Запускаем обучение, передавая дополнительные параметры
+    start_time = time.time()
     results_list = train_and_validate_models(
-        models_to_train, data_config, project_name, epochs)
+        models_to_train, data_config, project_name, epochs,
+        batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
+        augment=augment, fraction=fraction
+    )
+    training_time = time.time() - start_time
+    print(f"[INFO] Обучение завершилось за {training_time:.2f} сек.")
 
-    # Инициализация логгера для TensorBoard (логи будут сохранены в 'tensorboard_logs')
+    # Логирование метрик через TensorBoard
     from tb_logger import TensorBoardLogger
     tb_logger = TensorBoardLogger()
-
-    # Логирование итоговых метрик для каждой модели
     for result in results_list:
         model_name = result["Model"]
         tb_logger.log_metrics(model_name, {
-            "Precision": result["Precision"],
-            "Recall": result["Recall"],
-            "mAP50": result["mAP50"],
-            "mAP50-95": result["mAP50-95"],
-            "Training Time (s)": result["Training Time (s)"]
-        }, step=epochs)  # Используем номер последней эпохи как шаг
+            "Precision": result.get("Precision", 0),
+            "Recall": result.get("Recall", 0),
+            "mAP50": result.get("mAP50", 0),
+            "mAP50-95": result.get("mAP50-95", 0),
+            "Training Time (s)": result.get("Training Time (s)", training_time)
+        }, step=epochs)
     tb_logger.close()
 
-    # Сохранение метрик в формате JSON (для DVC)
+    # Сохраняем метрики в JSON-файл (для DVC)
     with open("metrics.json", "w") as f:
         json.dump(results_list, f, indent=4)
 
-    # Сохранение итоговых результатов также в CSV-файл
-    results_df = pd.DataFrame(results_list)
-    output_csv_path = "final_results.csv"
-    results_df.to_csv(output_csv_path, index=False)
-
-    print(
-        f"Эксперимент завершён: результаты сохранены в metrics.json и {output_csv_path}.")
+    print("Эксперимент завершён, результаты сохранены в metrics.json.")
 
 
 if __name__ == '__main__':

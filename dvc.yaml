@@ -1,10 +1,11 @@
 stages:
   train:
-    cmd: python3 train.py --config params.yaml
+    # cmd: python3 train.py --config params.yaml
+    cmd: python3 train.py --config params_light_weight.yaml
     deps:
       - train.py
       - params.yaml
-      - sh17-dataset/archive
+      - sh17-dataset
       - utils.py
     outs:
       - metrics.json
