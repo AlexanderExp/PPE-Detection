@@ -53,16 +53,25 @@ def wait_for_results_file(run_folder: str, pattern: str = "results.csv",
 
 
 def train_and_validate_models(models_to_train: dict, data_config: str,
-                              project_name: str, epochs: int = 10) -> list:
+                              project_name: str, epochs: int = 10,
+                              batch: int = 1, imgsz: int = 320,
+                              mosaic: float = 0.0, mixup: float = 0.0,
+                              augment: bool = False, fraction: float = 1.0) -> list:
     """
     Обучает и валидирует модели, возвращает список словарей с итоговыми метриками
-    и временем обучения.
+    и временем обучения. Дополнительно принимает параметры для легковесного тестового режима.
 
     :param models_to_train: Словарь моделей с путями к весовым файлам.
     :param data_config: Путь к конфигурационному файлу датасета.
     :param project_name: Папка для сохранения результатов.
     :param epochs: Число эпох обучения.
-    :return: Список словарей с результатами.
+    :param batch: Размер батча.
+    :param imgsz: Размер изображений (например, ширина=высота в пикселях).
+    :param mosaic: Коэффициент mosaic-аугментации.
+    :param mixup: Коэффициент mixup-аугментации.
+    :param augment: Флаг, указывающий на включение/отключение общей аугментации.
+    :param fraction: Доля используемых данных (1.0 – использовать все данные, <1.0 – часть).
+    :return: Список словарей с результатами обучения и метриками.
     """
     results_list = []
 
@@ -70,19 +79,21 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
         print(f"\n=== Обучение модели {model_name} ===")
         # Загружаем модель и переводим её на устройство
         model = YOLO(weights_path)
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
         model.to(device)
 
         # Задаём имя запуска для модели
         run_name = f"train_{model_name}"
-
         print(f"Начало обучения {model_name} на датасете {data_config} ...")
         start_time = time.time()
-        # Запуск обучения с указанием project и run_name
+        # Запуск обучения с указанием дополнительных параметров:
         model.train(data=data_config, epochs=epochs, verbose=True,
-                    project=project_name, name=run_name)
+                    project=project_name, name=run_name,
+                    batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
+                    augment=augment, fraction=fraction)
         training_time = time.time() - start_time
-        print(f"Обучение модели {model_name} завершено за {training_time:.2f} секунд.")
+        print(
+            f"Обучение модели {model_name} завершено за {training_time:.2f} секунд.")
 
         print(f"Выполняется валидация модели {model_name}...")
         val_results = model.val(data=data_config, verbose=True,
@@ -171,7 +182,8 @@ def aggregate_results(result_folders: list, output_csv_path: str) -> pd.DataFram
     print(results_df)
 
     for col in ["Precision", "Recall", "mAP50", "mAP50-95"]:
-        results_df[col] = pd.to_numeric(results_df[col], errors="coerce").fillna(0)
+        results_df[col] = pd.to_numeric(
+            results_df[col], errors="coerce").fillna(0)
 
     results_df.to_csv(output_csv_path, index=False)
     print("Итоговые результаты сохранены в", output_csv_path)
@@ -190,7 +202,8 @@ def plot_results(results_df: pd.DataFrame) -> None:
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     axes = axes.flatten()
 
-    axes[0].bar(results_df["Model"], results_df["Precision"], color=model_colors)
+    axes[0].bar(results_df["Model"],
+                results_df["Precision"], color=model_colors)
     axes[0].set_title("Precision")
     axes[0].set_xlabel("Модель")
     axes[0].set_ylabel("Precision")
@@ -205,7 +218,8 @@ def plot_results(results_df: pd.DataFrame) -> None:
     axes[2].set_xlabel("Модель")
     axes[2].set_ylabel("mAP50")
 
-    axes[3].bar(results_df["Model"], results_df["mAP50-95"], color=model_colors)
+    axes[3].bar(results_df["Model"],
+                results_df["mAP50-95"], color=model_colors)
     axes[3].set_title("mAP50-95")
     axes[3].set_xlabel("Модель")
     axes[3].set_ylabel("mAP50-95")
