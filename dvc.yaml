@@ -1,11 +1,10 @@
 stages:
   train:
-    # cmd: python3 train.py --config params.yaml
-    cmd: python3 train.py --config params_light_weight.yaml
+    cmd: python3 -m mlpt.models.train --config params_light_weight.yaml
     deps:
-      - train.py
-      - params.yaml
+      - mlpt/models/train.py
+      - params_light_weight.yaml
       - sh17-dataset
-      - utils.py
+      - mlpt/utils/utils.py
     outs:
       - metrics.json
