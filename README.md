@@ -6,6 +6,19 @@
 - Файл [YOLOv11_Train.ipynb](https://github.com/AlexanderExp/PPE-Detection/blob/main/notebooks/YOLOv11_Train.ipynb) состоит из ячеек с кодом обучения модели YOLOv11m для получения бейзлайна и метрик. Сохранена возможность обучения других версий YOLO для сравнения результатов (КТ_2)
 - Файл [YOLOv11m_Results](https://github.com/AlexanderExp/PPE-Detection/blob/main/YOLOv11m_Results.pdf) содержит бейзлайн и результаты обучения модели YOLOv11m (КТ_2)
 
+
+### Установка необходимого окружения
+
+python -m venv venv
+pip install -r requirements.txt
+pip install -e .
+dvc init
+dvc exp run
+tensorboard --logdir runs\detect\train_YOLOv11{NumberOfRun}
+
+
+
+### Структура репозитория
 ```plaintext
 PPE-Detection/
 ├── mlpt/
