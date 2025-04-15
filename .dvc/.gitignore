@@ -1,3 +1,5 @@
 /config.local
 /tmp
 /cache
+/cache_backup
+/tmp_backup
