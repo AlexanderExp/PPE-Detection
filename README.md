@@ -10,10 +10,15 @@
 ### Установка необходимого окружения
 
 python -m venv venv
+
 pip install -r requirements.txt
+
 pip install -e .
+
 dvc init
+
 dvc exp run
+
 tensorboard --logdir runs\detect\train_YOLOv11{NumberOfRun}
 
 
