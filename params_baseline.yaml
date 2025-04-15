@@ -1,0 +1,18 @@
+data:
+  train: "sh17-dataset/archive/updated_train_files.txt"
+  val: "sh17-dataset/archive/updated_val_files.txt"
+  config: "sh17-dataset/archive/sh17_kaggle.yaml"
+
+model:
+  name: "YOLOv11"
+  weights: "sh17-dataset/archive/yolo11m.pt"
+
+training:
+  epochs: 10
+  batch: 16
+  imgsz: 640
+  mosaic: 1.0
+  mixup: 0.0
+  augment: True
+  fraction: 1.0
+  device: "cuda:0"

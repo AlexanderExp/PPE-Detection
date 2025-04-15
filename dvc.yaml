@@ -1,6 +1,6 @@
 stages:
   train:
-    cmd: python3 -m mlpt.models.train --config params_light_weight.yaml
+    cmd: python -m mlpt.models.train --config params_baseline.yaml
     deps:
       - mlpt/models/train.py
       - params_light_weight.yaml
