@@ -1,27 +1,27 @@
 schema: '2.0'
 stages:
   train:
-    cmd: python3 train.py --config params_light_weight.yaml
+    cmd: python -m mlpt.models.train --config params_baseline.yaml
     deps:
-    - path: params.yaml
+    - path: mlpt/models/train.py
       hash: md5
-      md5: 025efb1769dfc51ba0e62cc05c6be6e6
-      size: 303
+      md5: 68a4bed1446624a33603384c7e2a3d5d
+      size: 3499
+    - path: mlpt/utils/utils.py
+      hash: md5
+      md5: e1d9441676ebe655ba7ccb5e6a82547f
+      size: 10526
+    - path: params_light_weight.yaml
+      hash: md5
+      md5: 5e8103b857cf349e2fbbc21a46b27ffd
+      size: 1046
     - path: sh17-dataset
       hash: md5
-      md5: 2106061dbe8838c613c8c00b340717eb.dir
-      size: 28427927821
-      nfiles: 32408
-    - path: train.py
-      hash: md5
-      md5: 06e8b681eca78ebe261361a719d71413
-      size: 3123
-    - path: utils.py
-      hash: md5
-      md5: a7436416648bbdd5ec1882af0018f011
-      size: 10302
+      md5: 98c496fe61078a94054f4459850856a5.dir
+      size: 14447010973
+      nfiles: 32407
     outs:
     - path: metrics.json
       hash: md5
-      md5: 8613f4972d5cb67e148996a3079da027
-      size: 179
+      md5: 84ece96ff96c5bf9c82e6101e3bfcba6
+      size: 188
