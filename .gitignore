@@ -146,6 +146,10 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
+# Weights
+.pt
+.pth
+
 # mkdocs documentation
 /site
 
