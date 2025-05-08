@@ -1,0 +1,20 @@
+stages:
+  train:
+    cmd: python3 -m mlpt.models.train --config configs/params_baseline.yaml
+    deps:
+      - mlpt/models/train.py
+      - configs/params_baseline.yaml
+      - sh17-dataset
+      - mlpt/utils/utils.py
+    params:
+      - configs/params_baseline.yaml:
+        - training.epochs
+        - training.batch
+        - training.imgsz
+        - training.mosaic
+        - training.mixup
+        - training.augment
+        - training.fraction
+    metrics:
+      - path: metrics.json
+        cache: false
