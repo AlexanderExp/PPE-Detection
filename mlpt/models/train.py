@@ -15,14 +15,22 @@ os.environ["MPLBACKEND"] = "agg"
 # Далее обычные импорты:
 
 
-def load_params(config_path):
+def load_params(config_path: str) -> dict:
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
 
 def main(config_path):
+    train_model(config_path)
+
+
+def train_model(config_input):
     # Загружаем параметры из указанного YAML-файла
-    params = load_params(config_path)
+    if isinstance(config_input, dict):
+        params = config_input
+    else:
+        # Иначе ожидаем путь к YAML
+        params = load_params(config_input)
 
     data_config = params["data"]["config"]
     models_to_train = {params["model"]["name"]: params["model"]["weights"]}
@@ -48,7 +56,7 @@ def main(config_path):
     results_list = train_and_validate_models(
         models_to_train, data_config, project_name, epochs,
         batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
-        augment=augment, fraction=fraction
+        augment=augment, fraction=fraction,
     )
     training_time = time.time() - start_time
     print(f"[INFO] Обучение завершилось за {training_time:.2f} сек.")
