@@ -4,6 +4,9 @@ torch==2.2.2
 torchvision==0.17.2
 # ultralytics>=8.0.0    # Последняя версия пакета ultralytics для работы с YOLO
 
+optuna>=3.0.0
+dvclive>=2.0.0
+
 # Анализ данных и визуализация
 pandas>=1.3.0
 matplotlib>=3.5.0

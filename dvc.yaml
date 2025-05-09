@@ -2,6 +2,7 @@ stages:
   train:
     cmd: python3 -m mlpt.models.train --config configs/params_baseline.yaml
     deps:
+      - requirements.txt
       - mlpt/models/train.py
       - configs/params_baseline.yaml
       - sh17-dataset
@@ -15,6 +16,22 @@ stages:
         - training.mixup
         - training.augment
         - training.fraction
+          
+  tune:
+    cmd: python3 -m mlpt.models.tune_optuna --config configs/params_baseline.yaml
+    deps:
+      - requirements.txt
+      - mlpt/models/tune_optuna.py
+      - mlpt/models/train.py
+      - configs/params_baseline.yaml
+      - sh17-dataset
+    params:
+      - configs/params_baseline.yaml:
+          - tuning.n_trials
+          - tuning.batch_opts
+          - tuning.imgsz_opts
+          - tuning.lr_min
+          - tuning.lr_max
     metrics:
-      - path: metrics.json
-        cache: false
+      - metrics.json:
+          cache: false

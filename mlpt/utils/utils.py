@@ -56,7 +56,8 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
                               project_name: str, epochs: int = 10,
                               batch: int = 1, imgsz: int = 320,
                               mosaic: float = 0.0, mixup: float = 0.0,
-                              augment: bool = False, fraction: float = 1.0) -> list:
+                              augment: bool = False, fraction: float = 1.0
+                              ) -> list:
     """
     Обучает и валидирует модели, возвращает список словарей с итоговыми метриками
     и временем обучения. Дополнительно принимает параметры для легковесного тестового режима.
@@ -87,10 +88,16 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
         print(f"Начало обучения {model_name} на датасете {data_config} ...")
         start_time = time.time()
         # Запуск обучения с указанием дополнительных параметров:
+        # model.train(data=data_config, epochs=epochs, verbose=True,
+        #             project=project_name, name=run_name,
+        #             batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
+        #             augment=augment, fraction=fraction)
+
         model.train(data=data_config, epochs=epochs, verbose=True,
                     project=project_name, name=run_name,
                     batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
                     augment=augment, fraction=fraction)
+        
         training_time = time.time() - start_time
         print(
             f"Обучение модели {model_name} завершено за {training_time:.2f} секунд.")
