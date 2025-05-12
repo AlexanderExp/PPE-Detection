@@ -7,3 +7,6 @@ exps:
 # запуск тюнинга через Optuna
 tune:
 	dvc exp run tune
+
+prune:
+	dvc exp run prune

@@ -16,7 +16,10 @@ stages:
         - training.mixup
         - training.augment
         - training.fraction
-          
+    metrics:
+      - metrics.json:
+          cache: false
+
   tune:
     cmd: python3 -m mlpt.models.tune_optuna --config configs/params_baseline.yaml
     deps:
@@ -35,3 +38,31 @@ stages:
     metrics:
       - metrics.json:
           cache: false
+
+  prune:
+    cmd: python3 -m mlpt.models.prune --config configs/params_baseline.yaml
+    deps:
+      - requirements.txt
+      - mlpt/models/prune.py
+      - mlpt/utils/utils.py
+      - configs/params_baseline.yaml
+      - sh17-dataset
+    params:
+      - configs/params_baseline.yaml:
+          - pruning.sparsity_levels
+    metrics:
+      - metrics_prune.json:
+          cache: false
+
+plots:
+  # baseline mAP50 после первого обучения
+  - path: metrics.json
+    template: simple
+    x: ['Model']
+    y: ['mAP50']
+
+  # mAP50 и mAP50-95 в зависимости от уровня прунинга
+  - path: metrics_prune.json
+    template: line
+    x: sparsity
+    y: [mAP50, mAP50-95]
