@@ -81,6 +81,7 @@ def train_model(config_input):
         json.dump(results_list, f, indent=4)
 
     print("Эксперимент завершён, результаты сохранены в metrics.json.")
+    return results_list[0] if results_list else None 
 
 
 if __name__ == '__main__':

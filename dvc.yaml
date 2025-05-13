@@ -1,6 +1,6 @@
 stages:
   train:
-    cmd: python3 -m mlpt.models.train --config configs/params_baseline.yaml
+    cmd: python -m mlpt.models.train --config configs/params_baseline.yaml
     deps:
       - requirements.txt
       - mlpt/models/train.py
@@ -17,11 +17,11 @@ stages:
         - training.augment
         - training.fraction
     metrics:
-      - metrics.json:
+      - metrics_train.json:
           cache: false
 
   tune:
-    cmd: python3 -m mlpt.models.tune_optuna --config configs/params_baseline.yaml
+    cmd: python -m mlpt.models.tune_optuna --config configs/params_baseline.yaml
     deps:
       - requirements.txt
       - mlpt/models/tune_optuna.py
@@ -40,7 +40,7 @@ stages:
           cache: false
 
   prune:
-    cmd: python3 -m mlpt.models.prune --config configs/params_baseline.yaml
+    cmd: python -m mlpt.models.prune --config configs/params_baseline.yaml
     deps:
       - requirements.txt
       - mlpt/models/prune.py
@@ -55,14 +55,17 @@ stages:
           cache: false
 
 plots:
-  # baseline mAP50 после первого обучения
-  - path: metrics.json
-    template: simple
-    x: ['Model']
-    y: ['mAP50']
+  # Baseline – бар-чарт из metrics.json
+  - metrics.json:
+      template: simple
+      x: Model        # имя столбца
+      y: mAP50        # один столбец (можно список)
 
-  # mAP50 и mAP50-95 в зависимости от уровня прунинга
-  - path: metrics_prune.json
-    template: line
-    x: sparsity
-    y: [mAP50, mAP50-95]
+  # Профиль прунинга – линии mAP50 и mAP50-95
+  - metrics_prune.json:
+      template: line
+      x: sparsity
+      y:
+        - mAP50
+        - mAP50-95
+

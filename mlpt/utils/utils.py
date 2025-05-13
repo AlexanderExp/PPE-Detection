@@ -107,7 +107,7 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
         val_results = model.val(data=data_config, verbose=True,
                                 project=project_name, name=run_name, workers=workers)
 
-        run_folder = os.path.join(project_name, run_name)
+        run_folder = train_res.save_dir
         results_file = wait_for_results_file(run_folder)
 
         if results_file:
