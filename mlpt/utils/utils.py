@@ -56,7 +56,8 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
                               project_name: str, epochs: int = 10,
                               batch: int = 1, imgsz: int = 320,
                               mosaic: float = 0.0, mixup: float = 0.0,
-                              augment: bool = False, fraction: float = 1.0
+                              augment: bool = False, fraction: float = 1.0,
+                              workers: int = 2,
                               ) -> list:
     """
     Обучает и валидирует модели, возвращает список словарей с итоговыми метриками
@@ -93,10 +94,10 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
         #             batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
         #             augment=augment, fraction=fraction)
 
-        model.train(data=data_config, epochs=epochs, verbose=True,
+        train_res = model.train(data=data_config, epochs=epochs, verbose=True,
                     project=project_name, name=run_name,
                     batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
-                    augment=augment, fraction=fraction)
+                    augment=augment, fraction=fraction, workers=workers)
         
         training_time = time.time() - start_time
         print(
@@ -104,7 +105,7 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
 
         print(f"Выполняется валидация модели {model_name}...")
         val_results = model.val(data=data_config, verbose=True,
-                                project=project_name, name=run_name)
+                                project=project_name, name=run_name, workers=workers)
 
         run_folder = os.path.join(project_name, run_name)
         results_file = wait_for_results_file(run_folder)

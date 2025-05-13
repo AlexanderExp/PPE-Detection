@@ -45,6 +45,7 @@ def train_model(config_input):
     mixup = training_cfg.get("mixup", 0.0)
     augment = training_cfg.get("augment", False)
     fraction = training_cfg.get("fraction", 1.0)
+    workers = training_cfg.get("workers", 2)
 
     project_name = "runs/detect"  # Папка для сохранения результатов эксперимента
 
@@ -56,7 +57,7 @@ def train_model(config_input):
     results_list = train_and_validate_models(
         models_to_train, data_config, project_name, epochs,
         batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
-        augment=augment, fraction=fraction,
+        augment=augment, fraction=fraction, workers=workers
     )
     training_time = time.time() - start_time
     print(f"[INFO] Обучение завершилось за {training_time:.2f} сек.")
