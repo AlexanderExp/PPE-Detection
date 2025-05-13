@@ -40,15 +40,15 @@ stages:
           cache: false
 
   prune:
-    cmd: python -m mlpt.models.prune --config configs/params_baseline.yaml
+    cmd: python -m mlpt.models.prune --config configs/params_prune.yaml
     deps:
       - requirements.txt
       - mlpt/models/prune.py
       - mlpt/utils/utils.py
-      - configs/params_baseline.yaml
+      - configs/params_prune.yaml
       - sh17-dataset
     params:
-      - configs/params_baseline.yaml:
+      - configs/params_prune.yaml:
           - pruning.sparsity_levels
     metrics:
       - metrics_prune.json:
