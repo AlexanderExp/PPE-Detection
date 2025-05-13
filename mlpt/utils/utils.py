@@ -57,7 +57,7 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
                               batch: int = 1, imgsz: int = 320,
                               mosaic: float = 0.0, mixup: float = 0.0,
                               augment: bool = False, fraction: float = 1.0,
-                              workers: int = 2,
+                              workers: int = 2, cache=None,
                               ) -> list:
     """
     Обучает и валидирует модели, возвращает список словарей с итоговыми метриками
@@ -88,16 +88,11 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
         run_name = f"train_{model_name}"
         print(f"Начало обучения {model_name} на датасете {data_config} ...")
         start_time = time.time()
-        # Запуск обучения с указанием дополнительных параметров:
-        # model.train(data=data_config, epochs=epochs, verbose=True,
-        #             project=project_name, name=run_name,
-        #             batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
-        #             augment=augment, fraction=fraction)
 
         train_res = model.train(data=data_config, epochs=epochs, verbose=True,
                     project=project_name, name=run_name,
                     batch=batch, imgsz=imgsz, mosaic=mosaic, mixup=mixup,
-                    augment=augment, fraction=fraction, workers=workers)
+                    augment=augment, fraction=fraction, workers=workers, cache=cache)
         
         training_time = time.time() - start_time
         print(
@@ -105,7 +100,8 @@ def train_and_validate_models(models_to_train: dict, data_config: str,
 
         print(f"Выполняется валидация модели {model_name}...")
         val_results = model.val(data=data_config, verbose=True,
-                                project=project_name, name=run_name, workers=workers)
+                                project=project_name, name=run_name, workers=workers, 
+                                cache=cache)
 
         run_folder = train_res.save_dir
         results_file = wait_for_results_file(run_folder)

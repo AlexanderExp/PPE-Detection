@@ -2,20 +2,20 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# 1) baseline
+# baseline
 with open("metrics_baseline.json") as f:
     base = pd.DataFrame(json.load(f))
 # возьмём первую (и единственную) строку
 base_map50 = base.loc[0, "mAP50"]
 
-# 2) prune
+# prune
 df_prune = pd.read_json("metrics_prune.json")
 
-# 3) retrain
+# retrain
 df_retrain = pd.read_json("metrics_retrain.json")
 
-# --- График 1: baseline vs prune vs retrain для одного sparsity ---
-s = 0.5  # пример sparsity, который вас интересует
+# График 1: baseline vs prune vs retrain для одного sparsity
+s = 0.5  # пример sparsity, который нам интересен
 pruned_m = df_prune[df_prune.sparsity == s].mAP50.values[0]
 retrain_m = df_retrain[df_retrain.sparsity == s].mAP50.values[0]
 
@@ -30,7 +30,7 @@ plt.xlabel("Stage")
 plt.tight_layout()
 plt.show()
 
-# --- График 2: полный профиль prune и retrain ---
+# График 2: полный профиль prune и retrain
 plt.figure()
 plt.plot(df_prune.sparsity, df_prune.mAP50, marker="o", label="after prune")
 plt.plot(df_retrain.sparsity, df_retrain.mAP50,

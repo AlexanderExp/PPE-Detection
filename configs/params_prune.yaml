@@ -16,7 +16,8 @@ training:
   augment:  true
   fraction: 1.0
   device:   cuda:0
-  workers: 2
+  workers:  2
+  cache:    ram    # или cache: disk, cache: true, cache: false
 
 tuning:
   n_trials:      3

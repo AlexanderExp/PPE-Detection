@@ -35,6 +35,9 @@ stages:
           - tuning.imgsz_opts
           - tuning.lr_min
           - tuning.lr_max
+    outs:
+      - models/best.pt              # <-- DVC будет кэшировать эту модель
+      - logs/train.log              # <-- и этот лог
     metrics:
       - metrics.json:
           cache: false

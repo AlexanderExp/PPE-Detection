@@ -5,14 +5,14 @@ import yaml
 import argparse
 import os
 import sys
-# Добавляем корень репозитория в sys.path, предполагая, что данный файл находится в mlpt/models/
+import shutil
+
+# Добавляем корень репозитория в sys.path
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../")))
 
 # Устанавливаем backend для matplotlib, если требуется
 os.environ["MPLBACKEND"] = "agg"
-
-# Далее обычные импорты:
 
 
 def load_params(config_path: str) -> dict:
@@ -25,18 +25,16 @@ def main(config_path):
 
 
 def train_model(config_input):
-    # Загружаем параметры из указанного YAML-файла
+    # Загружаем параметры
     if isinstance(config_input, dict):
         params = config_input
     else:
-        # Иначе ожидаем путь к YAML
         params = load_params(config_input)
 
     data_config = params["data"]["config"]
     models_to_train = {params["model"]["name"]: params["model"]["weights"]}
 
-    # Читаем секцию training и переопределяем параметры,
-    # если они заданы в YAML-файле; иначе берём дефолтные значения.
+    # Читаем параметры обучения
     training_cfg = params.get("training", {})
     epochs = training_cfg.get("epochs", 1)
     batch = training_cfg.get("batch", 1)
@@ -47,12 +45,13 @@ def train_model(config_input):
     fraction = training_cfg.get("fraction", 1.0)
     workers = training_cfg.get("workers", 2)
 
-    project_name = "runs/detect"  # Папка для сохранения результатов эксперимента
+    # Фиксированная папка для сохранения результатов
+    project_name = "runs/detect"
 
     print(
         f"[INFO] Параметры обучения: epochs={epochs}, batch={batch}, imgsz={imgsz}, mosaic={mosaic}, mixup={mixup}, augment={augment}, fraction={fraction}")
 
-    # Запускаем обучение, передавая дополнительные параметры
+    # Запуск обучения и валидации
     start_time = time.time()
     results_list = train_and_validate_models(
         models_to_train, data_config, project_name, epochs,
@@ -67,21 +66,39 @@ def train_model(config_input):
     tb_logger = TensorBoardLogger()
     for result in results_list:
         model_name = result["Model"]
-        tb_logger.log_metrics(model_name, {
-            "Precision": result.get("Precision", 0),
-            "Recall": result.get("Recall", 0),
-            "mAP50": result.get("mAP50", 0),
-            "mAP50-95": result.get("mAP50-95", 0),
-            "Training Time (s)": result.get("Training Time (s)", training_time)
-        }, step=epochs)
+        tb_logger.log_metrics(
+            model_name,
+            {
+                "Precision": result.get("Precision", 0),
+                "Recall": result.get("Recall", 0),
+                "mAP50": result.get("mAP50", 0),
+                "mAP50-95": result.get("mAP50-95", 0),
+                "Training Time (s)": result.get("Training Time (s)", training_time)
+            },
+            step=epochs
+        )
     tb_logger.close()
 
-    # Сохраняем метрики в JSON-файл (для DVC)
+    # Сохранение метрик для DVC
     with open("metrics.json", "w") as f:
         json.dump(results_list, f, indent=4)
-
     print("Эксперимент завершён, результаты сохранены в metrics.json.")
-    return results_list[0] if results_list else None 
+
+    # Копируем лучшие веса в фиксированное место для DVC
+    # Определяем имя модели и папку запуска
+    model_name = list(models_to_train.keys())[0]
+    run_dir = os.path.join(project_name, f"train_{model_name}")
+    best_src = os.path.join(run_dir, "weights", "best.pt")
+    dst_dir = "models"
+    os.makedirs(dst_dir, exist_ok=True)
+    dst = os.path.join(dst_dir, f"{model_name}_best.pt")
+    try:
+        shutil.copy(best_src, dst)
+        print(f"[INFO] Скопированы лучшие веса в {dst}")
+    except FileNotFoundError:
+        print(f"[WARNING] Файл {best_src} не найден, копирование пропущено.")
+
+    return results_list[0] if results_list else None
 
 
 if __name__ == '__main__':
