@@ -1,0 +1,31 @@
+data:
+  train: sh17-dataset/archive/updated_train_files.txt
+  val:   sh17-dataset/archive/updated_val_files.txt
+  config: sh17-dataset/archive/sh17_kaggle.yaml
+
+model:
+  name:    YOLOv11
+  weights: runs/detect/train_YOLOv1127/weights/best.pt
+
+training:
+  epochs:   1
+  batch:    16
+  imgsz:    320
+  mosaic:   1.0
+  mixup:    0.0
+  augment:  true
+  fraction: 1.0
+  device:   cuda:0
+  workers: 2
+
+tuning:
+  n_trials:      3
+  batch_opts:    [16, 32]
+  imgsz_opts:    [320, 640]
+  lr_min:        1e-5
+  lr_max:        1e-3
+
+pruning:
+  # fractions of weights to zero out (global unstructured)
+  # sparsity_levels: [0.3, 0.5, 0.7, 0.9]
+  sparsity_levels: [0.3, 0.9]
