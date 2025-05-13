@@ -1,16 +1,28 @@
-import argparse
+# В самом начале файла tune_optuna.py
+from functools import lru_cache
 import yaml
+import argparse
 import optuna
 from dvclive.optuna import DVCLiveCallback
 from mlpt.models.train import train_model
 import json
 
+# Обернём load_params в LRU-кеш
+@lru_cache(maxsize=None)
+def load_params(path: str) -> dict:
+    """
+    Кешированная загрузка YAML-конфига.
+    При повторном вызове с тем же `path`
+    будет возвращён уже распарсенный объект.
+    """
+    with open(path, 'r') as f:
+        return yaml.safe_load(f)
+
 
 def objective(trial, config_path):
-    # каждый раз читаем базовый конфиг
-    with open(config_path) as f:
-        params = yaml.safe_load(f)
-    # overrides
+    # теперь load_params не будет читать файл каждый раз
+    params = load_params(config_path)
+    # переопределяем параметры обучения из секции tuning
     params['training']['batch'] = trial.suggest_categorical(
         "batch", params['tuning']['batch_opts'])
     params['training']['imgsz'] = trial.suggest_categorical(
@@ -21,9 +33,8 @@ def objective(trial, config_path):
         float(params['tuning']['lr_max']),
         log=True
     )
-    # запуск
+    # прогоняем тренировку
     result = train_model(params)
-    # возвращаем mAP50
     return result['mAP50']
 
 
@@ -33,19 +44,21 @@ def main():
     parser.add_argument("--trials", type=int, default=None)
     args = parser.parse_args()
 
-    # сколько проб
-    base = yaml.safe_load(open(args.config))
+    # загружаем базовые параметры только один раз
+    base = load_params(args.config)
     n_trials = args.trials or base['tuning']['n_trials']
 
+    # создаём Study с любым storage (sqlite или pickle, как вам удобно)
     study = optuna.create_study(
-        direction="maximize", study_name="ppe_detection")
+        direction="maximize", study_name="ppe_detection"
+    )
     study.optimize(
         lambda t: objective(t, args.config),
         n_trials=n_trials,
         callbacks=[DVCLiveCallback(metric_name="mAP50")]
     )
 
-    # *** вставляем запись summary-файла ***
+    # записываем сводку
     best = study.best_trial
     summary = {
         "best_batch": best.params["batch"],
