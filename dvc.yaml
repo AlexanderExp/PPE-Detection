@@ -57,6 +57,24 @@ stages:
     - metrics_prune.json:
         cache: false
 
+  quantize:
+    cmd: python -m mlpt.models.quantize --config configs/params_quantize.yaml
+    deps:
+    - requirements.txt
+    - mlpt/models/quantize.py
+    - configs/params_quantize.yaml
+    - sh17-dataset/archive/updated_val_files.txt
+    params:
+    - configs/params_quantize.yaml:
+      - quantization.backend
+      - quantization.calib_size
+      - quantization.dtype
+    outs:
+    - models/YOLOv11_int8.pt
+    metrics:
+    - metrics_quantize.json:
+        cache: false
+
 plots:
   # Baseline – бар-чарт из metrics.json
 - metrics.json:
@@ -68,6 +86,12 @@ plots:
 - metrics_prune.json:
     template: line
     x: sparsity
+    y:
+    - mAP50
+    - mAP50-95
+- metrics_quantize.json:
+    template: bar
+    x: dtype
     y:
     - mAP50
     - mAP50-95

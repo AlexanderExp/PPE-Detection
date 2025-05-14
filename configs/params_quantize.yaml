@@ -1,0 +1,17 @@
+data:
+  train: sh17-dataset/archive/updated_train_files.txt
+  val:   sh17-dataset/archive/updated_val_files.txt
+  config: sh17-dataset/archive/sh17_kaggle.yaml
+
+model:
+  name:    YOLOv11
+  # Берем лучшие веса после fine-tune / prune
+  weights: models/YOLOv11_best.pt
+
+training: {}   # обучение не нужно, так как мы делаем PTQ
+
+quantization:
+  backend: qnnpack      # qnnpack (ARM/CPU), fbgemm (x86/CPU) …
+  calib_size: 512       # сколько изображений для калибровки
+  dtype: qint8          # итоговый тип весов
+  save_fp32: true       # сохранить копию float-32 для сравнения
