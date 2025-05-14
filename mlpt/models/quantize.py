@@ -12,7 +12,13 @@ from torch.ao.quantization import (
 )
 from mlpt.modules.ultralytics.ultralytics import YOLO
 from mlpt.utils.utils import wait_for_results_file
-
+from itertools import islice
+from tqdm import tqdm   
+from ultralytics.nn.modules.conv import Conv
+from ultralytics.nn.modules.conv import Conv
+from itertools import islice
+from tqdm import tqdm
+from torch.ao.quantization import fuse_modules, get_default_qconfig, prepare, convert
 
 def load_params(p):
     with open(p, "r") as f:
@@ -36,31 +42,28 @@ def build_calib_loader(val_txt, img_size, batch):
             return tfm(im), torch.tensor(0)
     return DataLoader(CalibDS(), batch_size=batch, shuffle=False)
 
-def quantize_ptq(yolo_w, backend, calib_loader, dtype):
+def quantize_ptq(weights, backend, calib_loader, calib_size, dtype):
     torch.backends.quantized.engine = backend
-    model = YOLO(yolo_w).model  # nn.Module
+    model = YOLO(weights).model
     model.eval()
 
-    # Фьюзим Conv+BN+ReLU
-    fuse_list = []
-    for name, m in model.named_children():
-        if isinstance(m, torch.nn.Sequential):
-            for idx in range(len(m)-1):
-                if isinstance(m[idx], torch.nn.Conv2d) and isinstance(m[idx+1], torch.nn.BatchNorm2d):
-                    fuse_list.append(f"{name}.{idx},{name}.{idx+1}")
-    if fuse_list:
-        fuse_modules(model, fuse_list, inplace=True)
+    # 1️⃣ Fuse только conv+bn (SiLU/act фьюзить нельзя)
+    for m in model.modules():
+        if isinstance(m, Conv):
+            fuse_modules(m, ['conv', 'bn'], inplace=True)
 
-    # Назначаем конфиг
+    # 2️⃣ Назначаем qconfig и вставляем обсерверы
     model.qconfig = get_default_qconfig(backend)
-
-    # Prepare (вставляет Observer-ы)
     prepared = prepare(model)
-    # Калибровка
+
+    # 3️⃣ Калибровка первых calib_size изображений
+    n_batches = calib_size // calib_loader.batch_size
     with torch.inference_mode():
-        for i, (imgs, _) in enumerate(calib_loader):
+        for imgs, _ in tqdm(islice(calib_loader, n_batches),
+                            total=n_batches, desc="Calibrating"):
             prepared(imgs)
-    # Convert FP32→INT8
+
+    # 4️⃣ Конвертация в INT8
     quantized = convert(prepared)
     return quantized
 
@@ -77,7 +80,8 @@ def main(cfg):
 
     print(f"[INFO] PTQ backend={backend}, dtype={dtype}, calib={calib_sz}")
     t0 = time.time()
-    q_model = quantize_ptq(weights, backend, calib_loader, dtype)
+    q_model = quantize_ptq(weights, backend, calib_loader, calib_sz, dtype)
+
     q_time = time.time() - t0
 
     # сохраняем INT8 веса
@@ -87,10 +91,13 @@ def main(cfg):
     print(f"[INFO] Saved quantized weights → {q_path}")
 
     # ========= Validation =========
-    # чтобы не переписывать val-код, оборачиваем quant-модель в YOLO
-    q_yolo = YOLO(q_model, task="detect")  # Ultralytics принимает nn.Module
-    val_res = q_yolo.val(
-        data=p["data"]["config"], imgsz=imgsz,
+    # загружаем обычную обёртку, а затем подменяем .model на квантизированный
+    yolo = YOLO(weights, task="detect")   # usual wrapper
+    yolo.model = q_model.to("cpu")        # INT8 model on CPU
+    val_res = yolo.val(
+        data=p["data"]["config"],
+        imgsz=imgsz,
+        device="cpu", batch=16, workers=0,
         project="runs/quant", name="int8", verbose=True
     )
 

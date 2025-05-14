@@ -6,12 +6,14 @@ data:
 model:
   name:    YOLOv11
   # Берем лучшие веса после fine-tune / prune
-  weights: models/YOLOv11_best.pt
+  # weights: dvclive/artifacts/best.pt
+  weights: runs/detect/train_YOLOv116/weights/best.pt
 
 training: {}   # обучение не нужно, так как мы делаем PTQ
 
 quantization:
-  backend: qnnpack      # qnnpack (ARM/CPU), fbgemm (x86/CPU) …
-  calib_size: 512       # сколько изображений для калибровки
+  backend: fbgemm      # qnnpack (ARM/CPU), fbgemm (x86/CPU) …
   dtype: qint8          # итоговый тип весов
   save_fp32: true       # сохранить копию float-32 для сравнения
+  calib_size: 64
+  eval_device: cpu
