@@ -21,7 +21,7 @@ stages:
         cache: false
 
   tune:
-    cmd: python -m mlpt.models.tune_optuna --config configs/params_baseline.yaml
+    cmd: python3 -m mlpt.models.tune_optuna --config configs/params_baseline.yaml
     deps:
     - requirements.txt
     - mlpt/models/tune_optuna.py

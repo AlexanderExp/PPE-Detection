@@ -1,28 +1,31 @@
-# Основные библиотеки для работы с глубинным обучением и анализом данных:
---extra-index-url=https://download.pytorch.org/whl/cu118
+# === Deep-Learning ===
 torch==2.2.2
 torchvision==0.17.2
-# ultralytics>=8.0.0    # Последняя версия пакета ultralytics для работы с YOLO
+torchaudio==2.2.2       # необязателен, но устраняет ворнинги
 
-optuna>=3.0.0
-dvclive>=2.0.0
+# === YOLO / CV ===
+ultralytics==8.3.133           # YOLOv11 уже внутри
+opencv-python-headless>=4.9.0
+pillow>=10.0.0
+PyYAML>=6.0
 
-# Анализ данных и визуализация
-pandas>=1.3.0
-matplotlib>=3.5.0
+# === Data / Science ===
+numpy>=1.26,<2.0
+pandas>=2.2.0
+matplotlib>=3.8.0
+scipy>=1.12.0
+seaborn>=0.13.2
 
-# Логирование экспериментов
-tensorboard>=2.10.0
-
-# Версионирование данных с помощью DVC
+# === Experiment & MLOps ===
 dvc>=3.59.1
+dvclive>=2.0.1
+optuna>=3.6.1
+tensorboard>=2.15.1
 
-# Инструменты для работы с Kaggle (если планируется скачивание датасетов через Kaggle API)
-kaggle>=1.5.12
+# === Utils / качество жизни ===
+tqdm>=4.66.0
+requests>=2.32.0
+protobuf<4                      # требуется tensorboard-у
 
-numpy<2
-
-
-# (Опционально) Если потребуется работа с удалёнными хранилищами через s3fs или аналогичные инструменты,
-# можно добавить их, но учтите, что возможны конфликты зависимостей:
-# s3fs==2023.10.0
+# === Опционально (Kaggle) ===
+kaggle>=1.5.15

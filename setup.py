@@ -1,36 +1,18 @@
-from pkg_resources import parse_requirements
+from pathlib import Path
 from setuptools import find_packages, setup
 
 
-def main():
-    package_name = 'mlpt'
-    # Ищем пакеты в каталоге mlpt
-    # Если не находится ultralytics, нужно ввести в терминале pip install -e mlpt/modules/ultralytics
-    packages = find_packages(where="mlpt", include=["mlpt.modules.ultralytics*"])
-    print("Найденные пакеты:", packages)
+def read_requirements():
+    return Path("requirements.txt").read_text().splitlines()
 
 
-    
-    # Чтение зависимостей из requirements.txt с указанием кодировки UTF-8
-    with open('requirements.txt', encoding='utf-8') as f:
-        reqs = [str(req) for req in parse_requirements(f)]
-    
-    setup(
-        name=package_name,
-        version='0.0.1',
-        author='HASKII',
-        description='PPE-Detection package',
-        package_dir={"": package_name},
-        packages=packages,
-        classifiers=[
-            "Programming Language :: Python :: 3",
-            "License :: OSI Approved :: Apache Software License",
-            "Operating System :: OS Independent",
-        ],
-        python_requires='>=3.7',
-        install_requires=reqs,
-    )
-
-
-if __name__ == '__main__':
-    main()
+setup(
+    name="mlpt",
+    version="0.1.0",
+    description="PPE Detection Pipeline (YOLO + DVC)",
+    author="HASKII",
+    python_requires=">=3.9",
+    packages=find_packages(),          # захватывает mlpt и все подпакеты
+    include_package_data=True,
+    install_requires=read_requirements(),
+)
