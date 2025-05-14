@@ -2,73 +2,82 @@ stages:
   train:
     cmd: python -m mlpt.models.train --config configs/params_baseline.yaml
     deps:
-      - requirements.txt
-      - mlpt/models/train.py
-      - configs/params_baseline.yaml
-      - sh17-dataset
-      - mlpt/utils/utils.py
+    - requirements.txt
+    - mlpt/models/train.py
+    - configs/params_baseline.yaml
+    - sh17-dataset
+    - mlpt/utils/utils.py
     params:
-      - configs/params_baseline.yaml:
-        - training.epochs
-        - training.batch
-        - training.imgsz
-        - training.mosaic
-        - training.mixup
-        - training.augment
-        - training.fraction
+    - configs/params_baseline.yaml:
+      - training.epochs
+      - training.batch
+      - training.imgsz
+      - training.mosaic
+      - training.mixup
+      - training.augment
+      - training.fraction
     metrics:
-      - metrics_train.json:
-          cache: false
+    - metrics_train.json:
+        cache: false
 
   tune:
     cmd: python -m mlpt.models.tune_optuna --config configs/params_baseline.yaml
     deps:
-      - requirements.txt
-      - mlpt/models/tune_optuna.py
-      - mlpt/models/train.py
-      - configs/params_baseline.yaml
-      - sh17-dataset
+    - requirements.txt
+    - mlpt/models/tune_optuna.py
+    - mlpt/models/train.py
+    - configs/params_baseline.yaml
+    - sh17-dataset
     params:
-      - configs/params_baseline.yaml:
-          - tuning.n_trials
-          - tuning.batch_opts
-          - tuning.imgsz_opts
-          - tuning.lr_min
-          - tuning.lr_max
+    - configs/params_baseline.yaml:
+      - tuning.n_trials
+      - tuning.batch_opts
+      - tuning.imgsz_opts
+      - tuning.lr_min
+      - tuning.lr_max
     outs:
-      - models/best.pt              # <-- DVC будет кэшировать эту модель
-      - logs/train.log              # <-- и этот лог
+    - models/best.pt                # <-- DVC будет кэшировать эту модель
+    - logs/train.log                # <-- и этот лог
     metrics:
-      - metrics.json:
-          cache: false
+    - metrics.json:
+        cache: false
 
   prune:
     cmd: python -m mlpt.models.prune --config configs/params_prune.yaml
     deps:
-      - requirements.txt
-      - mlpt/models/prune.py
-      - mlpt/utils/utils.py
-      - configs/params_prune.yaml
-      - sh17-dataset
+    - requirements.txt
+    - mlpt/models/prune.py
+    - mlpt/utils/utils.py
+    - configs/params_prune.yaml
+    - sh17-dataset
     params:
-      - configs/params_prune.yaml:
-          - pruning.sparsity_levels
+    - configs/params_prune.yaml:
+      - pruning.sparsity_levels
     metrics:
-      - metrics_prune.json:
-          cache: false
+    - metrics_prune.json:
+        cache: false
 
 plots:
   # Baseline – бар-чарт из metrics.json
-  - metrics.json:
-      template: simple
-      x: Model        # имя столбца
-      y: mAP50        # один столбец (можно список)
+- metrics.json:
+    template: simple
+    x: Model          # имя столбца
+    y: mAP50          # один столбец (можно список)
 
   # Профиль прунинга – линии mAP50 и mAP50-95
-  - metrics_prune.json:
-      template: line
-      x: sparsity
-      y:
-        - mAP50
-        - mAP50-95
+- metrics_prune.json:
+    template: line
+    x: sparsity
+    y:
+    - mAP50
+    - mAP50-95
 
+- dvclive/plots/metrics:
+    x: step
+- dvclive/plots/images
+params:
+- dvclive-optuna/params.yaml
+- dvclive/params.yaml
+metrics:
+- dvclive-optuna/metrics.json
+- dvclive/metrics.json
