@@ -1,0 +1,18 @@
+[
+  {
+    "sparsity": 0.3,
+    "Precision": 0,
+    "Recall": 0,
+    "mAP50": 0,
+    "mAP50-95": 0,
+    "Validation Time (s)": 92.29
+  },
+  {
+    "sparsity": 0.9,
+    "Precision": 0,
+    "Recall": 0,
+    "mAP50": 0,
+    "mAP50-95": 0,
+    "Validation Time (s)": 84.29
+  }
+]

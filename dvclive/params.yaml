@@ -5,7 +5,7 @@ data: sh17-dataset/archive/sh17_kaggle.yaml
 epochs: 8
 time:
 patience: 100
-batch: 32
+batch: 16
 imgsz: 640
 save: true
 save_period: -1
@@ -13,7 +13,7 @@ cache:
 device: cuda:0
 workers: 2
 project: runs/detect
-name: train_YOLOv116
+name: train_YOLOv1132
 exist_ok: false
 pretrained: true
 optimizer: auto
@@ -26,7 +26,7 @@ cos_lr: false
 close_mosaic: 10
 resume: false
 amp: true
-fraction: 1.0
+fraction: 0.7
 profile: false
 freeze:
 multi_scale: false
@@ -99,6 +99,7 @@ copy_paste: 0.0
 copy_paste_mode: flip
 auto_augment: randaugment
 erasing: 0.4
+crop_fraction: 1.0
 cfg:
 tracker: botsort.yaml
-save_dir: runs\detect\train_YOLOv116
+save_dir: runs\detect\train_YOLOv1132

@@ -14,14 +14,14 @@ training:
   mosaic:   1.0
   mixup:    0.0
   augment:  true
-  fraction: 1.0
+  fraction: 0.7
   device:   cuda:0
   workers:  2
   cache:    false    # или cache: disk, cache: true, cache: false
 
 tuning:
-  n_trials:      10
-  batch_opts:    [8, 16, 32]
+  n_trials:      8
+  batch_opts:    [8, 16]
   imgsz_opts:    [320, 640]
   lr_min:        1e-6
   lr_max:        1e-3

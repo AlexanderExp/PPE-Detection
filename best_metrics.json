@@ -1,0 +1,6 @@
+{
+    "best_batch": 16,
+    "best_imgsz": 640,
+    "best_lr": 4.164267715429807e-05,
+    "best_mAP50": 0.54146
+}

@@ -25,3 +25,37 @@ stages:
       hash: md5
       md5: a6924fade3309b25ab200e0341b9d116
       size: 187
+  prune:
+    cmd: python -m mlpt.models.prune --config configs/params_prune.yaml
+    deps:
+    - path: configs/params_prune.yaml
+      hash: md5
+      md5: 51e62ead02b1d9b168ef42076560b94e
+      size: 763
+    - path: mlpt/models/prune.py
+      hash: md5
+      md5: 9062e627459de682bdf8f756de6f4d17
+      size: 3842
+    - path: mlpt/utils/utils.py
+      hash: md5
+      md5: 96c6169774530fa52253f01fd26e27c0
+      size: 10635
+    - path: requirements.txt
+      hash: md5
+      md5: 27c7a803ed8a0ab9d39faede2ed93492
+      size: 717
+    - path: sh17-dataset
+      hash: md5
+      md5: 98c496fe61078a94054f4459850856a5.dir
+      size: 14447010973
+      nfiles: 32407
+    params:
+      configs/params_prune.yaml:
+        pruning.sparsity_levels:
+        - 0.3
+        - 0.9
+    outs:
+    - path: metrics_prune.json
+      hash: md5
+      md5: b3a2bf3f6906729e89089137407436a6
+      size: 289
