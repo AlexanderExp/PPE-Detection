@@ -82,8 +82,9 @@ def main(config_path: str):
             # fallback to returned object
             precision = getattr(val_results, "precision", 0)
             recall = getattr(val_results, "recall", 0)
-            mAP50 = getattr(val_results, "mAP50", 0)
-            mAP50_95 = getattr(val_results, "mAP50_95", 0)
+            mAP50    = getattr(val_results, "metrics", {}).get("mAP50",    getattr(val_results, "mAP50", 0))
+            mAP50_95 = getattr(val_results, "metrics", {}).get("mAP50_95", getattr(val_results, "mAP50_95", 0))
+
 
         results.append({
             "sparsity": s,

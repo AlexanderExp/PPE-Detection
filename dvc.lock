@@ -30,12 +30,12 @@ stages:
     deps:
     - path: configs/params_prune.yaml
       hash: md5
-      md5: 51e62ead02b1d9b168ef42076560b94e
+      md5: 5e29aa498641401ba4820219528b4478
       size: 763
     - path: mlpt/models/prune.py
       hash: md5
-      md5: 9062e627459de682bdf8f756de6f4d17
-      size: 3842
+      md5: 4ddd0d8b88511cde5a0f0fe710746764
+      size: 3953
     - path: mlpt/utils/utils.py
       hash: md5
       md5: 96c6169774530fa52253f01fd26e27c0
@@ -57,5 +57,5 @@ stages:
     outs:
     - path: metrics_prune.json
       hash: md5
-      md5: b3a2bf3f6906729e89089137407436a6
-      size: 289
+      md5: ab3484aff42b25de0d4e90a3d3750aae
+      size: 288

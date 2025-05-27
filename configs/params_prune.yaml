@@ -5,7 +5,7 @@ data:
 
 model:
   name:    YOLOv11
-  weights: runs/detect/train_YOLOv1127/weights/best.pt
+  weights: runs/detect/train_YOLOv1132/weights/best.pt
 
 training:
   epochs:   1

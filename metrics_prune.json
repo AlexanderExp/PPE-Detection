@@ -5,7 +5,7 @@
     "Recall": 0,
     "mAP50": 0,
     "mAP50-95": 0,
-    "Validation Time (s)": 92.29
+    "Validation Time (s)": 85.4
   },
   {
     "sparsity": 0.9,
@@ -13,6 +13,6 @@
     "Recall": 0,
     "mAP50": 0,
     "mAP50-95": 0,
-    "Validation Time (s)": 84.29
+    "Validation Time (s)": 82.51
   }
 ]
