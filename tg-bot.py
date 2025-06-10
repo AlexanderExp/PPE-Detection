@@ -25,6 +25,7 @@ if not TOKEN:
 bot = Bot(token=TOKEN)
 model = YOLO("dvclive/artifacts/best.pt") #ТУТ ПУТЬ ДО BEST_PT
 
+config_map = {} # Очень условный способ хранения, до перезапуска кода.
 dp = Dispatcher()
 router = Router()
 dp.include_router(router)
@@ -47,8 +48,13 @@ defalut_config = list(checking_pairs.keys())
 
 def check_image(config, image_path, path=None):  # config пришел от пользователя - на что проверять кадр
     ret = {}
-    res = model(image_path)
-    cls = res[0].boxes.cls.cpu().numpy()
+    need_to_check = []
+    for entry in config:
+        a, b = checking_pairs[entry]
+        need_to_check.append(a)
+        need_to_check.append(b)
+    res = model(image_path, classes=need_to_check)
+    cls = res[0].boxes.cls.numpy()
     unique, counts = np.unique(cls, return_counts=True)
     clss = dict(zip(unique, counts))
     for entry in config:
@@ -67,7 +73,33 @@ def check_image(config, image_path, path=None):  # config пришел от по
 
 @router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    await message.answer("Hi! Пришли мне фото или видео, а я подскажу, что не тут не так с точки зрения ТБ")
+    config_map[message.from_user.id] = defalut_config
+    await message.answer("Hi\\! Пришли мне фото или видео, а я подскажу, что не тут не так с точки зрения ТБ\nТекстовое сообщение \\- установка конфига поиска: список защитной одежды, которая должна присутствовать на изображении, через пробел\\.\nДопустимые классы: `gloves ear_mufs face_guard face_mask glasses shoes helmet medical_suit safety_suit safety_vest`", parse_mode=ParseMode.MARKDOWN_V2)
+
+@router.message(lambda message: message.text)
+async def command_config(message: Message) -> None:
+    if message.from_user.id not in config_map:
+        config_map[message.from_user.id] = defalut_config
+    clss = message.text.strip().split(" ")
+    conf = []
+    for cls in clss:
+        fixed = cls.replace("_", "-")
+        if fixed in defalut_config:
+            conf.append(fixed)
+    if len(conf) != 0:
+        config_map[message.from_user.id] = conf
+    else:
+        await message.answer("0 распознанных классов в тексте сообщения, конфиг остается без изменения")
+        conf = config_map[message.from_user.id]
+    res = "Итоговый конфиг поиска: "
+    for i, con in enumerate(conf):
+        res += con.replace("-", "_")
+        if i != len(conf) - 1:
+            res += ", "
+    res.replace("-", "\\-")
+    await message.answer(res)
+
+
 
 
 @router.message(lambda message: message.photo or message.video)
@@ -87,13 +119,13 @@ async def image_handler(message: Message) -> None:
         labeled_path = "tmp/" + ''.join(random.choices(string.ascii_letters + string.digits, k=8)) + ".jpg"
         open(filepath, "w")
         await bot.download(image.file_id, destination=filepath)
-        check = check_image(defalut_config, filepath, labeled_path)
+        check = check_image(config_map[message.from_user.id], filepath, labeled_path)
         answer = ""
         flag = False
         for elem, ok in check.items():
             if not ok:
                 flag = True
-                answer += f"Not enough: {elem}\n"
+                answer += f"Not enough: {elem.replace('-', '_')}\n"
         if not flag:
             answer += "All good!"
 
@@ -102,7 +134,6 @@ async def image_handler(message: Message) -> None:
         await message.answer(answer)
         os.remove(filepath)
         os.remove(labeled_path)
-
 
 
 async def video_handler(message: Message) -> None:
@@ -119,12 +150,12 @@ async def video_handler(message: Message) -> None:
             print(frame_num)
             if not ex:
                 break
-            check = check_image(defalut_config, frame)
+            check = check_image(config_map[message.from_user.id], frame)
             for elem, ok in check.items():
                 if not ok and first_off[elem] == -1:
                     first_off[elem] = float(frame_num) / float(fps)
                 if ok and first_off[elem] != -1:
-                    result += f"No {elem} from {first_off[elem]}s to {frame_num / fps}s!\n"
+                    result += f"No {elem.replace("-", "_")} from {first_off[elem]}s to {frame_num / fps}s!\n"
                     first_off[elem] = -1
         if len(result) == 0:
             result = "All good!"
